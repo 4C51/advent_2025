@@ -1,18 +1,22 @@
-use std::{fs, io};
+use std::io;
 use crate::safe::dial::Dial;
+use crate::puzzle::input::{InputType, PuzzleInput};
 
 mod safe;
+mod puzzle;
 
 fn main() {
     println!("Advent of Code 2025!");
 
+    let mut mode: InputType = InputType::Puzzle;
+
     loop {
         let mut day = String::new();
 
-        println!("Enter a day (1-?) - 'exit' or enter to quit");
-            io::stdin()
-        .read_line(&mut day)
-        .expect("Failed to read input");
+        println!("Enter a day (1-?) {}- 'exit' or enter to quit - 'e' to toggle Example Mode", match mode { InputType::Example => "[EXAMPLE MODE] ", _ => ""});
+        io::stdin()
+            .read_line(&mut day)
+            .expect("Failed to read input");
 
         let day = day.trim();
         let parsed_day: i32 = match day.parse() {
@@ -21,6 +25,10 @@ fn main() {
                 if day.is_empty() || day == "exit" || day == "q" {
                     println!("Goodbye!");
                     break;
+                } else if day == "e" {
+                    println!("Toggling example mode!");
+                    mode = match mode { InputType::Example => InputType::Puzzle, InputType::Puzzle => InputType::Example};
+                    continue;
                 } else {
                     println!("Please enter a number.");
                     continue;
@@ -31,21 +39,20 @@ fn main() {
         println!("Loading day {parsed_day}...");
 
         match parsed_day {
-            1 => day1(),
-            2 => day2(),
+            1 => day1(mode),
+            2 => day2(mode),
             _ => println!("Nothing available for day {parsed_day}"),
         }
     }
 }
 
-fn day1() {
+fn day1(input_type: InputType) {
     println!("Determining password...");
 
     let mut dial: Dial<100> = Dial::new();
+    let input = PuzzleInput::new(1);
 
-    let file = fs::read_to_string("./input/day_1.txt")
-        .expect("Could not read file");
-    let lines = file.lines();
+    let lines = input.lines(input_type);
 
     lines.for_each(|line| {
         dial.turn(line);
@@ -56,14 +63,13 @@ fn day1() {
     println!("Clicks: {}", dial.clicks);
 }
 
-fn day2() {
+fn day2(input_type: InputType) {
     println!("Determining invalid IDs...");
     let mut invalid_ids: Vec<String> = Vec::new();
     let mut invalid_total: i64 = 0;
 
-    let file = fs::read_to_string("./input/day_2.txt")
-        .expect("Could not read file");
-    let ranges: Vec<_> = file.trim().split(",").collect();
+    let input = PuzzleInput::new(2);
+    let ranges: Vec<_> = input.as_string(input_type).split(",").collect();
 
     fn valid_id(id: &i64) -> bool {
         let id = id.to_string();
