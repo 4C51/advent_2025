@@ -1,9 +1,11 @@
 use std::io;
+use crate::battery::bank::Bank;
 use crate::safe::dial::Dial;
-use crate::puzzle::input::{InputType, PuzzleInput};
+use crate::puzzle::input::{self, InputType, PuzzleInput};
 
 mod safe;
 mod puzzle;
+mod battery;
 
 fn main() {
     println!("Advent of Code 2025!");
@@ -41,6 +43,7 @@ fn main() {
         match parsed_day {
             1 => day1(mode),
             2 => day2(mode),
+            3 => day3(mode),
             _ => println!("Nothing available for day {parsed_day}"),
         }
     }
@@ -50,7 +53,13 @@ fn day1(input_type: InputType) {
     println!("Determining password...");
 
     let mut dial: Dial<100> = Dial::new();
-    let input = PuzzleInput::new(1);
+    let input = match PuzzleInput::new(1) {
+        Ok(input) => input,
+        Err(_) => {
+            println!("Failed to load puzzle input");
+            return;
+        }
+    };
 
     let lines = input.lines(input_type);
 
@@ -68,7 +77,13 @@ fn day2(input_type: InputType) {
     let mut invalid_ids: Vec<String> = Vec::new();
     let mut invalid_total: i64 = 0;
 
-    let input = PuzzleInput::new(2);
+    let input = match PuzzleInput::new(2) {
+        Ok(input) => input,
+        Err(_) => {
+            println!("Failed to load puzzle input");
+            return;
+        }
+    };
     let ranges: Vec<_> = input.as_string(input_type).split(",").collect();
 
     fn valid_id(id: &i64) -> bool {
@@ -123,4 +138,39 @@ fn day2(input_type: InputType) {
 
     println!("Invalid ids: {}", invalid_ids.join(", "));
     println!("Invalid total: {invalid_total}");
+}
+
+fn day3(input_type: InputType) {
+    println!("Calculating output joltage...");
+
+    let input = match PuzzleInput::new(3) {
+        Ok(input) => input,
+        Err(_) => {
+            println!("Failed to load puzzle input");
+            return;
+        }
+    };
+    let lines: Vec<&str> = input.lines(input_type).collect();
+
+    println!("Part 1 - 2 batteries");
+    let mut total_joltage: u64 = 0;
+    for line in &lines {
+        let bank = Bank::new(line);
+        let joltage = bank.get_joltage(2);
+        match input_type {InputType::Example => println!("Joltage of bank {}: {}", line, joltage), _ => ()};
+        total_joltage += joltage;
+    }
+
+    println!("Total joltage: {total_joltage}");
+
+    println!("Part 2 - 12 batteries");
+    let mut total_joltage_2: u64 = 0;
+    for line in &lines {
+        let bank = Bank::new(line);
+        let joltage = bank.get_joltage(12);
+        match input_type {InputType::Example => println!("Joltage of bank {}: {}", line, joltage), _ => ()};
+        total_joltage_2 += joltage;
+    }
+
+    println!("Total joltage: {total_joltage_2}");
 }
